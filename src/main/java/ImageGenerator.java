@@ -11,16 +11,12 @@ public class ImageGenerator {
     private static final String FILE_DIR_OUT_PATH = "Output Path";
 
     private static final int NUM_IMG_TO_GEN = 100;
-
     private static final int START_WEIGHT_BODY = 20;
     private static final int BODY_WEIGHT = 5;
-
     private static final int START_WEIGHT_EYES = 100;
     private static final int EYES_WEIGHT = 19;
-
     private static final int START_WEIGHT_MOUTH = 10;
     private static final int MOUTH_WEIGHT = 3;
-
     private static final RandomCollection<Object> rcBody = new RandomCollection<>();
     private static final RandomCollection<Object> rcEyes = new RandomCollection<>();
     private static final RandomCollection<Object> rcMouth = new RandomCollection<>();
@@ -101,7 +97,7 @@ public class ImageGenerator {
      * @exception NullPointerException : Error if directory path is incorrect
      * No Output but this method is used to write the specified quantity of images to an output directory
      */
-    private static void combineImages (String[] body, String[] eyes, String[] mouth) {
+    private static void mergeImageLayers(String[] body, String[] eyes, String[] mouth) {
         for(int i = 0; i < ImageGenerator.NUM_IMG_TO_GEN; i++){
             try {
                 //get weighted body
@@ -180,6 +176,6 @@ public class ImageGenerator {
         populateCollectionWeight(rcBody, body, START_WEIGHT_BODY, BODY_WEIGHT);
         populateCollectionWeight(rcEyes, eyes, START_WEIGHT_EYES ,EYES_WEIGHT);
         populateCollectionWeight(rcMouth, mouth, START_WEIGHT_MOUTH, MOUTH_WEIGHT);
-        combineImages(body, eyes, mouth);
+        mergeImageLayers(body, eyes, mouth);
     }
 }
