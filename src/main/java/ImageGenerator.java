@@ -56,69 +56,6 @@ public class ImageGenerator {
      * @param decreaseConst : Amount to Decrease at constant rate from the starting weighted Value
      * @exception  NullPointerException : exception if directory path is incorrect
      *
-     * Formula for determining the percentage an asset is likely to be chosen for a layer in the image merger:
-     *     (A-Bn) / Σ((A-Bn)^2) n = 0:i , where
-     *     A = starting weight value
-     *     B = constant to subtract from starting weight
-     *     n = index in summation
-     *     i = total indexes in file path : example below has 6 files (0-5)
-     *     0:i = each step in summation from 0 to i
-     *     Σ(A-Bn) = summation at each step from 0:i
-     *     ^2 = squared
-     *    EXAMPLE VALUES AND TABLE:
-     *     A = 100
-     *     B = 19
-     *     i = 5
-     *
-     *     ----------------------------------------------------------------------------------
-     *     |   N Index  |    0    |    1    |     2    |     3     |     4     |     5    |
-     *     ----------------------------------------------------------------------------------
-     *     |   (A-Bn)   |   100   |    81   |    62    |    43     |    24     |     5    |
-     *     ---------------------------------------------------------------------------------
-     *     | (A-Bn)^2   |  10000  |   6561  |   3844   |   1849    |    576    |    25    |
-     *     --------------------------------------------------------------------------------
-     *     | Σ(A-Bn)^2  |  22855  |  22855  |   22855  |   22855   |   22855   |   22855  |
-     *     --------------------------------------------------------------------------------
-     *     |  Weight %  | 43.75%  | 28.71%  |  16.82%  |   8.090%  |   2.520%  |  0.109%  |
-     *     ---------------------------------------------------------------------------------
-     *
-     * The weight that is actually used to determine how an image asset is pulled is a random double (0.0 - 1.0)
-     * multiplied by Σ(A-Bn)^2  (22855 in this example), where the closet value that is higher ( (A-Bn)^2 ) is chosen.
-     *  So if the random double = 0.0565654, then the image asset that would be chosen in this example would be
-     *  (0.0565654 * 22855 = 1292.802217) where map.higherEntry(1292.802217).getValue() = "filename at index 3", since
-     *  the next highest entry in the map is (1849, "filename at index 3").
-     *  Below are two more examples of how changing the values of A and B affect the weight distribution.
-     *
-     *  A = 10
-     *  B = 1
-     *  i = 2
-     *     ---------------------------------------------
-     *     |   N Index  |    0     |    1    |     2
-     *     ---------------------------------------------
-     *     |   (A-Bn)   |   10    |    9    |      8
-     *     ---------------------------------------------
-     *     | (A-Bn)^2   |  100    |   81    |     64
-     *     ---------------------------------------------
-     *     | Σ(A-Bn)^2  |  245    |   245   |    245
-     *     ---------------------------------------------
-     *     |  Weight %  | 40.82%  | 33.06%  |  26.12%
-     *     ---------------------------------------------
-     *   A = 100
-     *   B = 1000
-     *   i = 2
-     *   if (A-Bn) < 0 then the value is automatically reverted to 1
-     *     ---------------------------------------------
-     *    |   N Index  |    0     |     1     |     2
-     *     ---------------------------------------------
-     *    |   (A-Bn)   |   100    |     1     |     1
-     *     ---------------------------------------------
-     *    | (A-Bn)^2   |  10000   |     1     |     1
-     *    ---------------------------------------------
-     *    | Σ(A-Bn)^2  |  10002   |   10002   |  10002
-     *    ---------------------------------------------
-     *    |  Weight %  |  99.98%  | .000099%  |.000099%
-     *    ---------------------------------------------
-     *
      */
     private static void populateCollectionWeight(RandomCollection<Object> rc, String[] files, int start, int decreaseConst) {
         try {
