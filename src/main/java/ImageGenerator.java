@@ -106,11 +106,11 @@ public class ImageGenerator {
                 /* All images are same size 256x256 so picked an arbitrary img and divided by 5 to keep mouth and eyes
                 from getting too far from  outside body. offset not necessary but a nice example of adding randomness
                 to image generation. */
-                int limitOffset = 5;
+
                 // set randomX offSet
-                int randomX = randomOffset(mouthIMG.getWidth()/limitOffset);
+                int randomX = randomOffset(mouthIMG.getWidth()/Constants.limitOffsetX);
                 // set randomY offSet
-                int randomY = randomOffset(mouthIMG.getHeight()/limitOffset);
+                int randomY = randomOffset(mouthIMG.getHeight()/Constants.limitOffsetY);
 
                 //Create combined Image at exact same size
                 int outImgWidth = bodyIMG.getWidth();
@@ -133,6 +133,7 @@ public class ImageGenerator {
                 Double imageOdds = ((Math.pow(Constants.bodyOdds[bodyIndex],2)/ Constants.rcBody.collectionSum())
                         *(Math.pow(Constants.mouthOdds[mouthIndex],2)/ Constants.rcMouth.collectionSum())
                         * (Math.pow(Constants.eyesOdds[eyesIndex],2)/ Constants.rcEyes.collectionSum()) * 100);
+
                 Constants.oddsMap.put(i, imageOdds);
             }
             catch (ArrayIndexOutOfBoundsException e) {
