@@ -62,10 +62,10 @@ public class WriteExcelFile {
         } //autoSizes columns in case of bad spacing
         for (int j = 0; j < Constants.columns.length; j++) {
             sheet.autoSizeColumn(j);
-        } //Writing of the spreadsheet
-        FileOutputStream fileOut;
+        }
+        //Writing of the spreadsheet
         try {
-            fileOut = new FileOutputStream("Rarity_SpreadSheet.xlsx");
+            FileOutputStream fileOut = new FileOutputStream("Rarity_SpreadSheet.xlsx");
             workbook.write(fileOut);
             fileOut.close();
         } catch (IOException | NullPointerException e) {
