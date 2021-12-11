@@ -3,31 +3,17 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Random;
+
+import java.util.*;
 
 public class ImageGenerator {
-    private static final String FILE_DIR_OUT_PATH = "Output Path";
-
-    private static final int NUM_IMG_TO_GEN = 100;
-    private static final int START_WEIGHT_BODY = 20;
-    private static final int BODY_WEIGHT = 5;
-    private static final int START_WEIGHT_EYES = 100;
-    private static final int EYES_WEIGHT = 19;
-    private static final int START_WEIGHT_MOUTH = 10;
-    private static final int MOUTH_WEIGHT = 3;
-    private static final RandomCollection<Object> rcBody = new RandomCollection<>();
-    private static final RandomCollection<Object> rcEyes = new RandomCollection<>();
-    private static final RandomCollection<Object> rcMouth = new RandomCollection<>();
-
     /**takes directory as String and creates an array with all files in the directory
      *
      * @param  dir - path to create array of all assets in directory
      * @return files[String]: returns String[] of filenames in directory path
      * @exception  NullPointerException : exception if directory path is incorrect
      */
-    private static String[] fileArray(String dir) {
+    public static String[] fileArray(String dir) {
         String[] files = null;
         try {
             File f = new File(dir);
@@ -36,9 +22,8 @@ public class ImageGenerator {
                 files[i] = dir + "\\" + files[i];
             }
 
-
         } catch (NullPointerException e) {
-            System.out.println("Directory path is Incorrect");
+            e.printStackTrace();
 
         }
         return files;
@@ -50,21 +35,28 @@ public class ImageGenerator {
      * @param files : Array of Filenames in Directory
      * @param start : Start of Weighted Value
      * @param decreaseConst : Amount to Decrease at constant rate from the starting weighted Value
+     * @param odds : Array used for adding probability for that image asset to be used later
      * @exception  NullPointerException : exception if directory path is incorrect
+     * @exception  ArrayIndexOutOfBoundsException : Occurs if either files or odds array goes out of bounds
      *
      */
-    private static void populateCollectionWeight(RandomCollection<Object> rc, String[] files, int start, int decreaseConst) {
+    public static void populateCollectionWeight(RandomCollection<Object> rc, String[] files, int start, float decreaseConst, int[] odds) {
         try {
-            for (String file : files) {
-                rc.add(start, file); //add weight value to map
+
+            for (int i = 0; i < files.length; i++) {
+                rc.add(start, files[i]); //add weight value to map
+                odds[i] = start;
                 start -= decreaseConst; //subtract weight constant
-                if (start <= 0) { //gives a weight of 1 if file depth exceeds limit with (A-Bn)
+                if (start <= 0) { //gives a weight of 1 if file depth exceeds limit
                     start = 1;
                 }
             }
         }
         catch (NullPointerException e) {
             System.err.println("Null  Pointer Exception. Directory path is incorrect!");
+        }
+        catch (ArrayIndexOutOfBoundsException e) {
+            System.err.println("Array out of Bounds!");
         }
     }
 
@@ -75,17 +67,15 @@ public class ImageGenerator {
             if (Arrays.asList(files).contains(fileToPull)) {
                 return Arrays.asList(files).indexOf(fileToPull);
             }
-            else { // Error handling returns first index
-                System.out.println("CAUGHT");
-                return 0;
-            }
+
         }
         catch (NullPointerException e) {
             System.err.println("No files in Directory");
             e.printStackTrace();
         }
+        //this should not occur but return first index as fail safe
+        System.out.println("ERROR");
         return 0;
-
     }
 
     /**
@@ -97,17 +87,20 @@ public class ImageGenerator {
      * @exception NullPointerException : Error if directory path is incorrect
      * No Output but this method is used to write the specified quantity of images to an output directory
      */
-    private static void mergeImageLayers(String[] body, String[] eyes, String[] mouth) {
-        for(int i = 0; i < ImageGenerator.NUM_IMG_TO_GEN; i++){
-            try {
-                //get weighted body
-                BufferedImage bodyIMG = ImageIO.read(new File(body[getWeightedIndex(rcBody, body)]));
+    public static void mergeImageLayers(String[] body, String[] eyes, String[] mouth) {
+        for(int i = 0; i < Constants.NUM_IMG_TO_GEN; i++){
+            try { //get index first so it can be used for determining probabilities later
+                int bodyIndex = getWeightedIndex(Constants.rcBody, body);
+                int mouthIndex = getWeightedIndex(Constants.rcMouth, mouth);
+                int eyesIndex = getWeightedIndex(Constants.rcEyes, eyes);
+                //get random body
+                BufferedImage bodyIMG = ImageIO.read(new File(body[bodyIndex]));
 
-                //get weighted eyes
-                BufferedImage eyesIMG = ImageIO.read(new File(eyes[getWeightedIndex(rcEyes, eyes)]));
+                //get random eyes
+                BufferedImage eyesIMG = ImageIO.read(new File(eyes[eyesIndex]));
 
-                // get weighted mouth
-                BufferedImage mouthIMG = ImageIO.read(new File(mouth[getWeightedIndex(rcMouth, mouth)]));
+                // get random mouth
+                BufferedImage mouthIMG = ImageIO.read(new File(mouth[mouthIndex]));
 
 
                 /* All images are same size 256x256 so picked an arbitrary img and divided by 5 to keep mouth and eyes
@@ -123,20 +116,24 @@ public class ImageGenerator {
                 int outImgWidth = bodyIMG.getWidth();
                 int outImgHeight = bodyIMG.getHeight();
 
-                BufferedImage combined =
-                        new BufferedImage(outImgWidth, outImgHeight, BufferedImage.TYPE_INT_ARGB);
+                BufferedImage combined = new BufferedImage(outImgWidth, outImgHeight, BufferedImage.TYPE_INT_ARGB);
                 // paint images, preserving the alpha channels
                 Graphics g = combined.getGraphics();
                 g.drawImage(bodyIMG, 0, 0, null); //draws body first
                 g.drawImage(eyesIMG, randomX, randomY, null); //draws eyes at random coordinates
                 g.drawImage(mouthIMG, randomX, randomY, null); //draws mouth at random coordinates
-
                 g.dispose(); //saves memory
                 String filename = "img"; //creates base file name
-                filename += String.valueOf(i); //adds value of iteration to make new file
-                File outputPath = //output file path and image
-                        new File(FILE_DIR_OUT_PATH + filename + ".png");
+                filename += i;  //adds value of iteration to make new file
+                //output file
+                File outputPath = new File(Constants.FILE_DIR_OUT_PATH + filename + ".png");
+                Constants.outputFiles[i] = outputPath;
                 ImageIO.write(combined, "PNG", outputPath); //writing file
+
+                Double imageOdds = ((Math.pow(Constants.bodyOdds[bodyIndex],2)/ Constants.rcBody.collectionSum())
+                        *(Math.pow(Constants.mouthOdds[mouthIndex],2)/ Constants.rcMouth.collectionSum())
+                        * (Math.pow(Constants.eyesOdds[eyesIndex],2)/ Constants.rcEyes.collectionSum()) * 100);
+                Constants.oddsMap.put(i, imageOdds);
             }
             catch (ArrayIndexOutOfBoundsException e) {
                 System.err.println("Array index out of bounds");
@@ -162,20 +159,12 @@ public class ImageGenerator {
         return new Random().nextInt(offset) * (random.nextBoolean() ? -1 : 1);
     }
 
-   /**
-    * Main Method to Run
-    * */
-    public static void main(String[] args)  {
-        String dirBody = "Path to body folder";
-        String dirEyes = "Path to eyes folder";
-        String dirMouth = "Path to mouth folder";
-        String[] body = fileArray(dirBody);
-        String[] eyes = fileArray(dirEyes);
-        String[] mouth = fileArray(dirMouth);
-        //populate the random collection with the weights for each file directory
-        populateCollectionWeight(rcBody, body, START_WEIGHT_BODY, BODY_WEIGHT);
-        populateCollectionWeight(rcEyes, eyes, START_WEIGHT_EYES ,EYES_WEIGHT);
-        populateCollectionWeight(rcMouth, mouth, START_WEIGHT_MOUTH, MOUTH_WEIGHT);
-        mergeImageLayers(body, eyes, mouth);
+    /**
+     * Debugging tool used to make sure odds of excel file match actual odds of image
+     */
+    public static void ShowOdds() {
+        Constants.oddsMap.forEach((key, value) ->
+                System.out.println("Odds of " + key + " being generated is: " + value + "%"));
     }
+
 }

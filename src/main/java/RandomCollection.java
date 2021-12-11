@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 import java.util.NavigableMap;
 import java.util.Random;
@@ -21,7 +16,7 @@ public class RandomCollection<E> {
         this.random = random;
     }
 
-    public RandomCollection<E> add(double weight, E result) {
+    public RandomCollection<E> add(float weight, E result) {
         if (weight <= 0) {
             return this;
         }
@@ -37,10 +32,18 @@ public class RandomCollection<E> {
         double value = random.nextDouble() * total;
         return map.higherEntry(value).getValue();
     }
-
+    //outputs all entry keys and values
     public void output(){
         map.entrySet().forEach(entry -> {
             System.out.println(entry.getKey() + ":" + entry.getValue().toString());
         });
+    }
+
+    /**
+     *
+     * @return : the sum of all values squared: Σ((A-Bn)^2)
+     */
+    public Double collectionSum() {
+        return map.lastEntry().getKey();
     }
 }
